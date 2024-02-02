@@ -40,9 +40,9 @@ def main(args):
     has_video_writer = args.out_path is not None
     if has_video_writer:
         os.makedirs(os.path.dirname(args.out_path), exist_ok=True)
-        # fourcc = cv2.VideoWriter_fourcc('X','V','I','D')
-        # fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        # fourcc = cv2.VideoWriter_fourcc('X','V','I','D') # FIXME COMMENT THIS OUT
+        # fourcc = cv2.VideoWriter_fourcc(*'XVID') # FIXME COMMENT THIS OUT
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v') # FIXME UNCOMMENT THIS
         video_writer = cv2.VideoWriter(args.out_path, fourcc, 30, (960, 320))
     
     world.reset()
@@ -57,12 +57,24 @@ def main(args):
             car.step_dynamics(action)
             car.step_sensors()
 
-            vis_img = display.render()
-            if has_video_writer:
-                video_writer.write(vis_img[:, :, ::-1])
-            else:
-                cv2.imshow('Visualize RGB', vis_img[:, :, ::-1])
-                cv2.waitKey(20) # re-indent this when done TODO
+            # this is to save the image, will save every third frame
+            if frame_idx%3 ==0 and has_video_writer:
+                vis_img = display.render()
+                filename = f"frame{frame_idx}.jpg"
+                # define where to save it
+                os.chdir(args.out_path) # goes to outpath directory placed in flag
+                cv2.imwrite(filename, vis_img)
+
+            # vis_img = display.render() # this defines the image
+
+
+            # # does this every third frame for space reasons
+            # if has_video_writer and frame_idx%3 == 0:
+            #     video_writer.write(vis_img[:, :, ::-1])
+            # else:
+            #     # cv2.imshow('Visualize RGB', vis_img[:, :, ::-1])
+            #     # cv2.waitKey(20) # re-indent this when done TODO
+            #     print("we all good, no output path specified, not writing output")
             
             frame_idx += 1
         except KeyboardInterrupt:
