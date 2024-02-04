@@ -42,8 +42,8 @@ def main(args):
         os.makedirs(os.path.dirname(args.out_path), exist_ok=True)
         # fourcc = cv2.VideoWriter_fourcc('X','V','I','D') # FIXME COMMENT THIS OUT
         # fourcc = cv2.VideoWriter_fourcc(*'XVID') # FIXME COMMENT THIS OUT
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v') # FIXME UNCOMMENT THIS
-        video_writer = cv2.VideoWriter(args.out_path, fourcc, 30, (960, 320))
+        # fourcc = cv2.VideoWriter_fourcc(*'mp4v') # FIXME UNCOMMENT THIS
+        # video_writer = cv2.VideoWriter(args.out_path, fourcc, 30, (960, 320))  # changing the way we write out visual outputs
     
     world.reset()
     display.reset()
@@ -52,8 +52,8 @@ def main(args):
     while not car.done and frame_idx <= 300:
         try:
             print(f"Frame Index: {frame_idx}")
-            # action = follow_human_trajectory(car) # FIXME changed this
-            action = np.array([0,10]) # FIXME this is a hard-coded statespace controller
+            action = follow_human_trajectory(car) # FIXME changed this
+            # action = np.array([0,10]) # FIXME this is a hard-coded statespace controller
             car.step_dynamics(action)
             car.step_sensors()
 
@@ -80,8 +80,8 @@ def main(args):
         except KeyboardInterrupt:
             break
 
-    if has_video_writer:
-        video_writer.release()
+    # if has_video_writer:
+    #     video_writer.release()
         # os.system(f"ffmpeg -i {args.out_path} -vcodec libx264 {args.out_path}")
 
 
