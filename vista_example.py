@@ -32,9 +32,21 @@ def main(args):
             'lookahead_road': True
         })
 
+    # Adding another car to see if DINOv2 can run segmentation on this.
+    obstacle_car = world.spawn_agent(
+        config = {
+            'length': 5.,
+            'width': 2.,
+            'wheel_base': 2.78,
+            'steering_ratio': 14.7,
+            'lookahead_road': False # don't need to keep road data cached, since it doesn't have a camera attached
+        }
+    )
+
     camera_front = car.spawn_camera(config={
         'size': (200, 320),
-    }) # another problem here, since I will likely need a camera object
+    })
+    print(f"view synthesis is {camera_front.view_synthesis}")
     display = vista.Display(world)
     
     has_video_writer = args.out_path is not None
@@ -54,8 +66,16 @@ def main(args):
             print(f"Frame Index: {frame_idx}")
             action = follow_human_trajectory(car) # FIXME changed this
             # action = np.array([0,10]) # FIXME this is a hard-coded statespace controller
+            print(f"Action that ego car followed was {action}")
             car.step_dynamics(action)
+            
+            # now add actions to obstacle_car
+            # obstacle_action = np.array([15,100]) #FIXME This is just a hardcoded path the obstacle car will follow
+            obstacle_action = np.array([action[0], action[1]*1.5]) # follows the same path but faster
+            obstacle_car.step_dynamics(obstacle_action)
+
             car.step_sensors()
+
 
             # this is to save the image, will save every third frame
             if frame_idx%3 ==0 and has_video_writer:
@@ -86,8 +106,6 @@ def main(args):
 
 
 def follow_human_trajectory(agent):
-    print(f"agent is {agent}")
-    print(f"agent.trace is {agent.trace}")
     action = np.array([
         agent.trace.f_curvature(agent.timestamp),
         agent.trace.f_speed(agent.timestamp)
