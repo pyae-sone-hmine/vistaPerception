@@ -50,18 +50,13 @@ def main(args):
     while not car.done and frame_idx <= 300: # can change this for longer simuls
         try:
             print(f"Frame Index: {frame_idx}")
-
-
             ### PYAE'S TODO 
-
             """
             will have action = (output_of_BarrierNet, given Hector's perception input and BarrierNet processing, 
             will need segmentation and depth), 
             syntax for action is 2-tuple with (angle, velocity), so make sure to format it correctly
             how would you fetch the correct format of the BarrierNet output (formatted as (angle, velocity))
             """
-
-
             ### END PYAE'S TODO
             action = None # REMOVE THIS AFTER
             car.step_dynamics(action)
