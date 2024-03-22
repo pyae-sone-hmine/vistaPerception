@@ -13,7 +13,15 @@ from vista.entities.sensors.camera_utils.ViewSynthesis import DepthModes
 from vista.utils import logging
 from vista.tasks import MultiAgentBase
 from vista.utils import transform
+from BarrierNet.Driving.eval_tools.utils import extract_logs
 
+
+
+import sys
+sys.path.append('/home/gridsan/phmine/BarrierNet/Driving/models/')
+from BarrierNet.Driving.models.barrier_net import LitModel
+
+print("Successful import of BarrierNet")
 
 def main(args):
     # Initialize the simulator
@@ -28,6 +36,7 @@ def main(args):
         wheel_base=2.78,
         steering_ratio=14.7,
         lookahead_road=True,
+        use_curvilinear_dynamics = True,
     )
     examples_path = os.path.dirname(os.path.realpath(__file__))
     sensors_config = [
@@ -78,6 +87,9 @@ def main(args):
     frame_idx = 0
     done = False
     while not done and frame_idx <= 300:
+        # see what extract_log does and what it outputs
+        ground_truth = extract_logs(env, env.world.agents[0]) # hopefully ego-car
+        print(ground_truth)
         # follow nominal trajectories for all agents
         actions = generate_human_actions(env.world)
 
@@ -123,6 +135,7 @@ def main(args):
 
         print("Frame", frame_idx)
         frame_idx += 1
+    return ground_truths
 
 def state2poly(state, car_dim):
     """ Convert vehicle state to polygon """
