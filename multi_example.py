@@ -8,11 +8,11 @@ from matplotlib import cm
 from shapely.geometry import box as Box
 from shapely import affinity
 
-import vista
-from vista.entities.sensors.camera_utils.ViewSynthesis import DepthModes
-from vista.utils import logging
-from vista.tasks import MultiAgentBase
-from vista.utils import transform
+# import vista
+from BarrierNet.Driving.vista.vista.entities.sensors.camera_utils.ViewSynthesis import DepthModes
+from BarrierNet.Driving.vista.vista.utils import logging
+from BarrierNet.Driving.vista.vista.tasks import MultiAgentBase
+from BarrierNet.Driving.vista.vista.utils import transform
 from BarrierNet.Driving.eval_tools.utils import extract_logs
 
 
@@ -58,6 +58,7 @@ def main(args):
 
     ego_car_config = copy.deepcopy(car_config)
     ego_car_config['lookahead_road'] = True
+    ego_car_config['use_curvilinear_dynamics'] = True
     env = MultiAgentBase(trace_paths=args.trace_paths,
                          trace_config=trace_config,
                          car_configs=[car_config] * task_config['n_agents'],
@@ -65,6 +66,8 @@ def main(args):
                          (task_config['n_agents'] - 1),
                          task_config=task_config,
                          logging_level='DEBUG')
+
+    print("world is ", env.world)
 
     # Run
     env.reset()
@@ -87,6 +90,14 @@ def main(args):
     frame_idx = 0
     done = False
     while not done and frame_idx <= 300:
+
+        # seeing if we can access agents, debugging
+        for agent in env.world.agents:
+            print("agent id is ", agent.id)
+            print("ego dynamics are ",agent.ego_dynamics)
+            print("agent is ", agent)
+            print("agent type is ", type(agent))
+
         # see what extract_log does and what it outputs
         ground_truth = extract_logs(env, env.world.agents[0]) # hopefully ego-car
         print(ground_truth)
