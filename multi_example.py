@@ -8,11 +8,11 @@ from matplotlib import cm
 from shapely.geometry import box as Box
 from shapely import affinity
 
-# import vista
-from BarrierNet.Driving.vista.vista.entities.sensors.camera_utils.ViewSynthesis import DepthModes
-from BarrierNet.Driving.vista.vista.utils import logging
-from BarrierNet.Driving.vista.vista.tasks import MultiAgentBase
-from BarrierNet.Driving.vista.vista.utils import transform
+import vista
+from vista.entities.sensors.camera_utils.ViewSynthesis import DepthModes
+from vista.utils import logging
+from vista.tasks import MultiAgentBase
+from vista.utils import transform
 from BarrierNet.Driving.eval_tools.utils import extract_logs
 
 
@@ -252,7 +252,7 @@ if __name__ == '__main__':
     parser.add_argument('--visualize-privileged-info',
                         action='store_true',
                         default=False,
-                        help='Visualize privileged information')
+                        help='Visualize privileged information')      
     args = parser.parse_args()
 
     main(args)
