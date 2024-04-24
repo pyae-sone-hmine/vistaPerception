@@ -146,7 +146,6 @@ def main(args):
 
         print("Frame", frame_idx)
         frame_idx += 1
-    return ground_truths
 
 def state2poly(state, car_dim):
     """ Convert vehicle state to polygon """
@@ -224,7 +223,9 @@ def generate_human_actions(world):
         actions[agent.id] = np.array([
             agent.trace.f_curvature(agent.timestamp),
             agent.trace.f_speed(agent.timestamp)
+
         ])
+        print("TRACES:", agent.timestamp)
     return actions
 
 
