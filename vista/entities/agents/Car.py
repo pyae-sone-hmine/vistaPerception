@@ -59,7 +59,7 @@ class Car(Entity):
         'use_curvilinear_dynamics': True,
         'lookahead_road': True,
         'road_buffer_size': 1e5,
-        'control_mode': 'kappa-v',
+        'control_mode': 'delta-v',
     }
 
     def __init__(self, world: World, car_config: Dict) -> None:
@@ -352,7 +352,7 @@ class Car(Entity):
     def step_dynamics(self,
                       action: np.ndarray,
                       dt: Optional[float] = 1 / 30.,
-                      update_road: Optional[bool] = True) -> None:
+                      update_road: Optional[bool] = True, past_actions = None) -> None:
         """ Update vehicle state given control command based on vehicle dynamics
         and update timestamp, which is then used to update pointer to the dataset
         for data-driven simulation.
@@ -379,6 +379,7 @@ class Car(Entity):
                                                      self.wheel_base)
         elif self.control_mode == 'delta-v':
             desired_tire_angle, desired_speed = action
+            print("now within Car.py step_dynamics, within delta-v, action is ", action)
         elif self.control_mode == 'omega-a':
             tire_velocity, acceleration = action
         else:
@@ -389,19 +390,23 @@ class Car(Entity):
             # TODO: non-perfect low-level controller
             logging.debug('Using perfect low-level controller now')
             desired_state = [desired_tire_angle, desired_speed]
-            update_with_perfect_controller(desired_state, dt,
-                                           self._ego_dynamics)
+            if past_actions is None:
+                update_with_perfect_controller(desired_state, dt, self._ego_dynamics)
+            else:
+                update_with_perfect_controller(desired_state, dt, self._ego_dynamics, past_actions = past_actions)
+            print("line 395", desired_state)
         elif self.control_mode == 'omega-a':
             self._ego_dynamics.step(tire_velocity, acceleration, dt)
         else:
             raise NotImplementedError(f'Unrecognized mode {self.control_mode}')
 
-        # Update based on vehicle dynamics feedback
+        # Update based on vehicle dynamics feedback #FIXME not updating ego_dynamics
         self._tire_angle = self.ego_dynamics.steering
         self._speed = self.ego_dynamics.speed
         self._curvature = tireangle2curvature(self.tire_angle, self.wheel_base)
         self._steering = curvature2steering(self.curvature, self.wheel_base,
                                             self.steering_ratio)
+
 
         # Update human (reference) dynamics for assoication with the trace / dataset
         human = self.human_dynamics.copy()

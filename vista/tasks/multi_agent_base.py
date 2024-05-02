@@ -184,7 +184,7 @@ class MultiAgentBase:
 
         return observations
 
-    def step(self, actions, dt=1 / 30.):
+    def step(self, actions, dt=1 / 30. , past_actions = None):
         """ Step the environment. This includes updating agents' states, synthesizing
         agents' observations, checking terminal conditions, and computing rewards.
 
@@ -205,7 +205,11 @@ class MultiAgentBase:
         # Update agents' dynamics (state)
         for agent in self.world.agents:
             action = actions[agent.id]
-            agent.step_dynamics(action, dt=dt)
+            print("action in multiagent is ", action)
+            if past_actions is None:
+                agent.step_dynamics(action, dt=dt)
+            else:
+                agent.step_dynamics(action, dt=dt, past_actions=past_actions[agent.id])
 
         # Get agents' sensory measurement
         self._sensor_capture()

@@ -14,6 +14,7 @@ from vista.utils import logging
 from vista.tasks import MultiAgentBase
 from vista.utils import transform
 from BarrierNet.Driving.eval_tools.utils import extract_logs
+from vista.entities.agents.Dynamics import curvature2steering, curvature2tireangle
 
 
 
@@ -89,6 +90,12 @@ def main(args):
     
     frame_idx = 0
     done = False
+
+    # FIXME ADDED THIS CODE SECTION
+    past_actions = dict()
+    for agent in env.world.agents:
+        past_actions[agent.id] = [0,0]
+
     while not done and frame_idx <= 300:
 
         # seeing if we can access agents, debugging
@@ -103,9 +110,9 @@ def main(args):
         print(ground_truth)
         # follow nominal trajectories for all agents
         actions = generate_human_actions(env.world)
-
+        # FIXME pyae added this
         # step environment
-        observations, rewards, dones, infos = env.step(actions)
+        observations, rewards, dones, infos = env.step(actions, past_actions = past_actions) # FIXME past_actions added
         done = np.any(list(dones.values()))
 
         # fetch priviliged information (road, all cars' states)
@@ -135,7 +142,7 @@ def main(args):
         # vista visualization
         # if args.use_display: # we change this to always true
         if True: # FIXME hardcoded thisf
-            if frame_idx % 3 == 0 and has_video_writer:
+            if frame_idx % 1 == 0 and has_video_writer:
                 img = display.render()
                 filename = f"frame{frame_idx}.jpg"
                 os.chdir(args.out_path)
@@ -143,6 +150,8 @@ def main(args):
             key = cv2.waitKey(20)
             if key == ord('q'):
                 break
+
+        past_actions = copy.deepcopy(actions)
 
         print("Frame", frame_idx)
         frame_idx += 1
@@ -220,12 +229,15 @@ def fetch_privileged_info(world, agent):
 def generate_human_actions(world):
     actions = dict()
     for agent in world.agents:
+        tire_angle = curvature2tireangle(agent.human_curvature, agent.wheel_base)
+        steering = curvature2steering(agent.human_curvature, agent.wheel_base, agent.steering_ratio)
         actions[agent.id] = np.array([
-            agent.trace.f_curvature(agent.timestamp),
+            # agent.trace.f_curvature(agent.timestamp),
+            tire_angle,
             agent.trace.f_speed(agent.timestamp)
 
         ])
-        print("TRACES:", agent.timestamp)
+    print("actions are ", actions)
     return actions
 
 

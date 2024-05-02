@@ -519,7 +519,7 @@ def steering2curvature(steering: float, wheel_base: float,
 
 def update_with_perfect_controller(
         desired_state: List[float], dt: float,
-        dynamics: Union[BicycleDynamics, CurvilinearDynamics]) -> None:
+        dynamics: Union[BicycleDynamics, CurvilinearDynamics], past_actions = None) -> None:
     """ Update vehicle state assuming a perfect low-level controller. This
     basically simulate that the low-level controller can "instantaneously"
     achieve the desired state (e.g., steering (tire) angle and speed) with control
@@ -531,8 +531,22 @@ def update_with_perfect_controller(
         dynamics (Union[BicycleDynamics, CurvilinearDynamics]): Vehicle state.
 
     """
+
+    # FIXME: ADDED THIS STUFF, calculating derivative to pass into step
+    assert len(desired_state) == 2, "desired state is not length 2, somethigns up "
+    if past_actions is not None:
+        print("actions and past actions",desired_state,past_actions)
+        past_desired_tire_angle, past_desired_speed = past_actions
+        desired_tire_angle, desired_speed = desired_state
+        working_acceleration = float((desired_speed - past_desired_speed)/dt)
+        working_steering_velocity = float((desired_tire_angle - past_desired_tire_angle)/dt)
+
+
     # simulate condition when the desired state can be instantaneously achieved
     new_dyn = dynamics.numpy()
     new_dyn[-2:] = desired_state
     dynamics.update(*new_dyn)
-    dynamics.step(0., 0., dt)
+    if past_actions is not None:    
+        dynamics.step(working_steering_velocity,working_acceleration, dt)
+    else:
+        dynamics.step(0.0, 0.0, dt)
