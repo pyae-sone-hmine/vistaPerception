@@ -59,7 +59,7 @@ class Car(Entity):
         'use_curvilinear_dynamics': True,
         'lookahead_road': True,
         'road_buffer_size': 1e5,
-        'control_mode': 'delta-v',
+        'control_mode': 'omega-a', #THIS IS WHERE YOU CHANGE CONTROL MODE
     }
 
     def __init__(self, world: World, car_config: Dict) -> None:
