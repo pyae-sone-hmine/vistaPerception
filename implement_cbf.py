@@ -110,7 +110,8 @@ def main(args):
         ground_truth = extract_logs(env, env.world.agents[0]) # hopefully ego-car
         print(ground_truth)
         # follow nominal trajectories for all agents
-        actions = generate_human_actions(env.world) 
+        #actions = generate_human_actions(env.world) 
+        actions = cbf_actions(env.world) 
 
         observations, rewards, dones, infos = env.step(actions, past_actions = past_actions) # FIXME past_actions added
         done = np.any(list(dones.values()))
@@ -235,17 +236,37 @@ def generate_human_actions(world):
         # omega = agent.ego_dynamics.tire_velocity
         # acceleration = agent.ego_dynamics.acceleration
         actions[agent.id] = np.array([
-        # agent.trace.f_curvature(agent.timestamp),
         agent.trace.f_curvature(agent.timestamp),
         agent.trace.f_speed(agent.timestamp)
-
         ])
     print("actions are ", actions)
     return actions
 
 
-def cbf_actions():
-    pass
+def cbf_actions(world):
+    input_dict = {"p_oa": [2., 1], "use_lane_following_cbf": True, "p_lf": [1., 1.],
+                  "lf_cbf_threshold": 2, "use_lane_following_clf": True,
+                  "lf_clf_params": [1., 1., 10., 10.], "use_desired_speed_clf": True,
+                  "ds_clf_params": [10, 8, 0]}
+    
+    controller = CBF(input_dict)
+
+    ego_agent = world.agents[0]
+    tire_velocity, acceleration = controller(ego_agent, world)
+    actions = dict()
+    actions[ego_agent.id] = np.array([tire_velocity, acceleration])
+
+    # only care about movement of ego_car, all non_egos are static
+    for non_ego_agent in world.agents[1:]:
+        actions[non_ego_agent.id] = np.array([0,0])
+
+    return actions
+
+
+
+
+
+
 
 if __name__ == '__main__':
     # Parse Arguments
