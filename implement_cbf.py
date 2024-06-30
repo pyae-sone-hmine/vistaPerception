@@ -55,6 +55,7 @@ def main(args):
     task_config = dict(n_agents=2,
                        mesh_dir=args.mesh_dir,
                        init_dist_range=[6., 10.],
+                       overlap_threshold= 0.01,
                        init_lat_noise_range=[-1., 1.])
     display_config = dict(road_buffer_size=1000, )
 
@@ -258,7 +259,7 @@ def cbf_actions(world):
 
     # only care about movement of ego_car, all non_egos are static
     for non_ego_agent in world.agents[1:]:
-        actions[non_ego_agent.id] = np.array([0,0])
+        actions[non_ego_agent.id] = np.array([1,0.5])
 
     return actions
 
