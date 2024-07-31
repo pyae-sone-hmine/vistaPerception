@@ -229,7 +229,7 @@ class CBF(BaseController):
             LgLfbu1 = 2*ds*cos_mu_beta/(1 - d*kappa) + 2*dd*sin_mu_beta
             LgLfbu2 = (-2*ds*v*sin_mu_beta/(1 - d*kappa) + 2*dd*v*cos_mu_beta)*lrf/np.cos(delta)**2/(1 + (lrf*np.tan(delta))**2)
             
-            p = np.array(self.config.p_oa) # WHAT IS THIS FIXME
+            p = np.array(self.config["p_oa"]) # WHAT IS THIS FIXME
             G0 = np.array([-LgLfbu1, -LgLfbu2]).reshape(1, -1)
             h0 = Lf2b + (p[0] + p[1])*barrier_dot + p[0]*p[1]*barrier
             
@@ -244,15 +244,15 @@ class CBF(BaseController):
         barrier_oa = barrier
         
         ## lane following cbf
-        if self.config.use_lane_following_cbf: # PROBABLY SET THIS TO TRUE FIXME
-            lf_cbf_threshold = self.config.lf_cbf_threshold # PLAY AROUND WITH THIS VALUE FIXME
+        if self.config["use_lane_following_cbf"]: # PROBABLY SET THIS TO TRUE FIXME
+            lf_cbf_threshold = self.config["lf_cbf_threshold"] # PLAY AROUND WITH THIS VALUE FIXME
 
             barrier = lf_cbf_threshold - d
             barrier_dot = -v*sin_mu_beta
             Lf2b = -v*cos_mu_beta*mu_dot
             LgLfbu1 = -sin_mu_beta
             LgLfbu2 = -v*cos_mu_beta*lrf/np.cos(delta)**2/(1 + (lrf*np.tan(delta))**2)
-            p = np.array(self.config.p_lf)
+            p = np.array(self.config["p_lf"])
             G1 = np.array([-LgLfbu1, -LgLfbu2]).reshape(1, -1)
             h1 = Lf2b + (p[0] + p[1])*barrier_dot + p[0]*p[1]*barrier
 
@@ -261,7 +261,7 @@ class CBF(BaseController):
             Lf2b = v*cos_mu_beta*mu_dot
             LgLfbu1 = sin_mu_beta
             LgLfbu2 = v*cos_mu_beta*lrf/np.cos(delta)**2/(1 + (lrf*np.tan(delta))**2)
-            p = np.array(self.config.p_lf) # THIS ONE TOO FIXME
+            p = np.array(self.config["p_lf"]) # THIS ONE TOO FIXME
             G2 = np.array([-LgLfbu1, -LgLfbu2]).reshape(1, -1)
             h2 = Lf2b + (p[0] + p[1])*barrier_dot + p[0]*p[1]*barrier
             
@@ -274,8 +274,8 @@ class CBF(BaseController):
         barrier_lf = barrier
             
         ## lane following CLF
-        if self.config.use_lane_following_clf: # SET THIS TO NONE OR FALSE FIXME
-            k1, k2, alpha, eps = self.config.lf_clf_params
+        if self.config["use_lane_following_clf"]: # SET THIS TO NONE OR FALSE FIXME
+            k1, k2, alpha, eps = self.config["lf_clf_params"]
             V_d = (d + k1*v*sin_mu_beta)**2 + alpha*(mu + k2*v/lr*np.sin(beta))**2
             LfV = 2*(d + k1*v*sin_mu_beta)*(v*sin_mu_beta + k1*v*cos_mu_beta*mu_dot) \
                     + 2*alpha*(mu + k2*v/lr*np.sin(beta))*mu_dot
@@ -299,11 +299,11 @@ class CBF(BaseController):
         # print(barrier_oa, barrier_lf)
         
         # desired speed clf
-        if self.config.use_desired_speed_clf:
+        if self.config["use_desired_speed_clf"]:
             # eps = 10
             # vd = 8
             # LfV = 0
-            eps, vd, LfV = self.config.ds_clf_params
+            eps, vd, LfV = self.config["ds_clf_params"]
             V = (v - vd)**2
             LgVu1 = 2*(v - vd)
             LgVu2 = np.zeros_like(LgVu1)

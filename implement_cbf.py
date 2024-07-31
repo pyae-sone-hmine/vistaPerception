@@ -14,27 +14,27 @@ from vista.entities.sensors.camera_utils.ViewSynthesis import DepthModes
 from vista.utils import logging
 from vista.tasks import MultiAgentBase
 from vista.utils import transform
-from BarrierNet.Driving.eval_tools.utils import extract_logs
+# from BarrierNet.Driving.eval_tools.utils import extract_logs
 from vista.entities.agents.Dynamics import curvature2steering, curvature2tireangle
 
 
 
-import sys
-sys.path.append('/home/gridsan/phmine/BarrierNet/Driving/models/')
-from BarrierNet.Driving.models.barrier_net import LitModel
+# import sys
+# sys.path.append('/home/gridsan/phmine/BarrierNet/Driving/models/')
+# from BarrierNet.Driving.models.barrier_net import LitModel
 
-print("Successful import of BarrierNet")
+# print("Successful import of BarrierNet")
 
 def main(args):
     # Initialize the simulator
     trace_config = dict(
-        road_width=4,
+        road_width=4*3, # changed this TODO
         reset_mode='default',
         master_sensor='camera_front',
     )
     car_config = dict(
-        length=5.,
-        width=2.,
+        length=5. * 0.5, # changed this TODO
+        width=2. * 0.5, # changed this TODO
         wheel_base=2.78,
         steering_ratio=14.7,
         lookahead_road=True,
@@ -54,8 +54,8 @@ def main(args):
     ]
     task_config = dict(n_agents=2,
                        mesh_dir=args.mesh_dir,
-                       init_dist_range=[6., 10.],
-                       overlap_threshold= 0.01,
+                       init_dist_range=[20, 5.], # used to be [6,10]
+                       overlap_threshold= 0.001,
                        init_lat_noise_range=[-1., 1.])
     display_config = dict(road_buffer_size=1000, )
 
@@ -98,7 +98,7 @@ def main(args):
     for agent in env.world.agents:
         past_actions[agent.id] = [0,0]
 
-    while not done and frame_idx <= 300:
+    while not done and frame_idx <= 2500:
 
         # seeing if we can access agents, debugging
         for agent in env.world.agents:
@@ -108,11 +108,11 @@ def main(args):
             print("agent type is ", type(agent))
 
         # see what extract_log does and what it outputs
-        ground_truth = extract_logs(env, env.world.agents[0]) # hopefully ego-car
-        print(ground_truth)
+        # ground_truth = extract_logs(env, env.world.agents[0]) # hopefully ego-car
+        # print(ground_truth)
         # follow nominal trajectories for all agents
         #actions = generate_human_actions(env.world) 
-        actions = cbf_actions(env.world) 
+        actions = cbf_actions(env.world, frame_idx) 
 
         observations, rewards, dones, infos = env.step(actions, past_actions = past_actions) # FIXME past_actions added
         done = np.any(list(dones.values()))
@@ -244,7 +244,7 @@ def generate_human_actions(world):
     return actions
 
 
-def cbf_actions(world):
+def cbf_actions(world, frame):
     input_dict = {"p_oa": [2., 1], "use_lane_following_cbf": True, "p_lf": [1., 1.],
                   "lf_cbf_threshold": 2, "use_lane_following_clf": True,
                   "lf_clf_params": [1., 1., 10., 10.], "use_desired_speed_clf": True,
@@ -254,12 +254,28 @@ def cbf_actions(world):
 
     ego_agent = world.agents[0]
     tire_velocity, acceleration = controller(ego_agent, world)
+
+    # check to make sure we don't go to a super small acceleration:
+    if abs(acceleration) < 1e-02 and acceleration != 0:
+        if acceleration < 0:
+            acceleration = -1e-02
+        elif acceleration > 0:
+            acceleration = 1e-02
+
+    # have the ego car wait for the 
+    if frame < 60:
+        tire_velocity, acceleration = 0,0
+
     actions = dict()
     actions[ego_agent.id] = np.array([tire_velocity, acceleration])
 
     # only care about movement of ego_car, all non_egos are static
-    for non_ego_agent in world.agents[1:]:
-        actions[non_ego_agent.id] = np.array([1,0.5])
+    if frame <= 20:
+        for non_ego_agent in world.agents[1:]:
+            actions[non_ego_agent.id] = np.array([0.5,0.5])
+    else:
+        for non_ego_agent in world.agents[1:]:
+            actions[non_ego_agent.id] = np.array([0,0]) # doesn't move past 60 frames so it stays on road
 
     return actions
 
