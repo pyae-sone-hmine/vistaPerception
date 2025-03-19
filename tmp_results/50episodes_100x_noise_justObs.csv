@@ -1,0 +1,2 @@
+episode_number,done,out_of_lane,exceed_max_rot,crashed,overlap,n_passed,num_steps
+14,True,False,True,False,[0.],0,48

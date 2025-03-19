@@ -1,0 +1,26 @@
+These show the results of the 50 episode experiment with different noise settings. 
+
+50episodes_natural.csv: no noise just pure BarrierNet:
+2.0% out of lane
+22.0% crashed
+40.0% non-passed
+24.0% exceeded max rot
+
+50episodes_100x_noise_justObs.csv: 100x noise just on the obstacle:
+2.0% out of lane
+44.0% crashed
+50.0% non-passed
+6.0% exceeded max rot
+
+50episodes_natural_no_exceed_max_rot.csv: no noise and no exceed max rot:
+10.0% out of lane
+22.0% crashed
+30.0% non-passed
+16.0% exceeded max rot
+
+50episodes_updated_barrier.csv: updated barrier: at 8.1m radius, and the offset was never changed.
+16 out of lane
+12% crashed
+24% non-passed
+18% exceeded max rot
+
